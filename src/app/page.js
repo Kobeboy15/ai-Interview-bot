@@ -8,6 +8,7 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const [startTime, setStartTime] = useState("");
   const [stopTime, setStopTime] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [aiText, setAiText] = useState("");
 
   async function runGemini() {
@@ -21,11 +22,12 @@ export default function Home() {
     const parameter =
       "What you are reading now is content for an interview I am practicing. Can you grade me and evaluate my attempt, based on my vocabulary and clarity of my speaking and topics? The question I was asked was, 'Tell me about yourself?' Here is my content: ";
 
-    const timing = `The whole talking time took ${stopTime - startTime} in msec. Always convert my time into regular seconds.`;
+    const timing = `The whole talking time took ${stopTime - startTime} in msec. Always convert my time into regular seconds. Dont even show the miliseconds anymore`;
 
     const result = await model.generateContent(parameter + prompt + timing);
     console.log(result.response.text());
     setAiText(result.response.text());
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function Home() {
         recognition.abort();
         setIsListening(false);
         setStopTime(new Date().getTime());
+        setIsLoading(true);
         console.log("Recognition stopped");
       };
 
@@ -104,25 +107,26 @@ export default function Home() {
   }, [isListening]);
 
   return (
-    <div className="text-center h-screen flex flex-col justify-center max-w-screen-lg m-auto">
-      <div className="">
-        {!isListening ? <p>Not listening... 🔴</p> : <p>Start speaking 🟢</p>}
+    <div className="text-center h-screen flex flex-col justify-center max-w-screen-lg m-auto p-8">
+      <div className="mb-4">
+        <p className>Question 1</p>
+        <h3 className="text-lg font-bold">Tell me about yourself...</h3>
       </div>
-      <div className="h-full text-left border rounded-sm p-5 overflow-auto border-white/20">
+      <div className={`h-full text-left border rounded-sm p-5 overflow-auto border-white/20 ${isListening ? "border-green-500" : ""} ${isLoading ? "border-blue-300" : ""}`}>
         {words.length > 0 && (
-          <p className="max-w-[70%] bg-blue-500 px-2 py-2 w-fit rounded">
+          <p className="max-w-[70%] bg-blue-500 px-4 py-3 w-fit rounded">
             {words.map((word, index) => (
               <span className="input-words" key={index}>{word}</span>
             ))}
           </p>
         )}
         {aiText.length > 0 && (
-          <p
+          <div
             id="response"
-            className="mt-10 text-justify max-w-[70%] ml-auto bg-blue-500 px-4 py-3 rounded prose prose-invert text-white input-words"
+            className="mt-10 text-left max-w-[70%] ml-auto bg-blue-500 px-4 py-3 rounded prose prose-invert text-white input-words"
           >
             <Markdown>{aiText}</Markdown>
-          </p>
+          </div>
         )}
       </div>
 
